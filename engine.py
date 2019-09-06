@@ -4,6 +4,7 @@ import sys
 import re
 import traceback
 from collections import OrderedDict
+from prettytable import PrettyTable
 
 def read_file(file):
     formattedLines = []
@@ -221,12 +222,12 @@ def processQuery(query, tableDict):
         # display_table(curTable)
 
 def applyAggregate(aggfuncs, aggcols, curTable):
-    str1 = ""
-    str2 = ""
+    colNames = []
+    row = []
     for i, funcName in enumerate(aggfuncs):
         col = aggcols[i]
+        colNames.append(funcName + "(" + col + ")")
         tmp = curTable[col]
-        str1 +=  '| {:^5s} '.format(funcName + "(" + col + ")")
         if funcName == "max":
             v = str(max(tmp))
         elif funcName == "min":
@@ -237,14 +238,12 @@ def applyAggregate(aggfuncs, aggcols, curTable):
             v = str(sum(tmp)/len(tmp))
         else:
             raise NotImplementedError('Unknown Aggregation function ' + funcName)
-        str2 += '| {:^13s} '.format(v)
-    s =  "----------------" * len(aggcols)
-    print(s +"-")
-    print(str1 + "|")
-    print(s +"-")
-    print(str2 + "|")
-    print(s +"-")
-    
+        row.append(v)
+
+    x = PrettyTable()
+    x.field_names = colNames
+    x.add_row(row)
+    print(x)
 
 def intersect(ls1, ls2):
     return set(set(ls1) & set(ls2))
@@ -352,29 +351,16 @@ def applyOp(ls1, op, ls2):
     return idxs
 
 def display_table(tableDict):
-    str1 = ""
     cols = list(tableDict.keys())
     nrows = len(tableDict[cols[0]])
-    s =  "-----------" * len(cols)
-
-
-    for col in cols:
-        str1 += '| {:^5s} '.format(col)
-
-    print(s+"-")
-    print(str1 + "|")
-    print(s+"-")
-
-
+    x = PrettyTable()
+    x.field_names = cols
     for i in range(nrows):
-        str2 = ""
+        row = []
         for col in cols:
-            tmp = '| {:^8s} '.format(str(tableDict[col][i]))
-            str2 += tmp
-        str2 += "|"
-        print(str2)
-    print(s+"-")
-
+            row.append(tableDict[col][i])
+        x.add_row(row)
+    print(x)
 
 def format_col(col, tables, tableDict):
     formattedName = ""
